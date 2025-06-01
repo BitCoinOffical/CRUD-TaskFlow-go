@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>TaskFlow</h1>
+    
+    <!-- Форма добавления задачи -->
+    <form id="taskForm" class="task-form">
+      <input type="text" id="title" placeholder="Название" required>
+      <textarea id="description" placeholder="Описание"></textarea>
+      
+      <div class="row">
+        <select id="priority">
+          <option value="low">Низкий</option>
+          <option value="medium" selected>Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+        
+        <select id="status">
+          <option value="pending">В процессе</option>
+          <option value="completed">Завершено</option>
+        </select>
+      </div>
+      
+      <button type="submit">Добавить</button>
+    </form>
+    
+    <!-- Фильтры -->
+    <div class="filters">
+      <input type="text" id="search" placeholder="Поиск...">
+      <select id="filterPriority">
+        <option value="">Все приоритеты</option>
+        <option value="high">Высокий</option>
+        <option value="medium">Средний</option>
+        <option value="low">Низкий</option>
+      </select>
+    </div>
+    
+    <!-- Список задач -->
+    <div id="taskList" class="task-list"></div>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+</html>

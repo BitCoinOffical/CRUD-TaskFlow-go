@@ -5,34 +5,25 @@ import (
 	"net/http"
 
 	"main.go/internal/handlers"
+	"main.go/internal/router"
 	"main.go/internal/storage"
 )
 
 func main() {
-	storage.InitSQLite()
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/", fs)
-	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handlers.GetTaskHandlers(w, r)
-		case http.MethodPost:
-			handlers.CreateTaskHandlers(w, r)
-		default:
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
+	db := storage.InitSQLite("tasks.db")
+	h := handlers.NewHandler(db)
+	mux := http.NewServeMux()
+
+	mux.Handle("/tasks", router.MethodRouter{
+		"GET":  h.GetTaskHandlers,
+		"POST": h.CreateTaskHandlers,
 	})
 
-	http.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPatch:
-			handlers.UpdateTaskByIDHandlers(w, r)
-		case http.MethodDelete:
-			handlers.DeleteTaskHandlers(w, r)
-		default:
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
+	mux.Handle("/tasks/", router.MethodRouter{
+		"PATCH":  h.UpdateTaskByIDHandlers,
+		"DELETE": h.DeleteTaskHandlers,
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux.Handle("/", http.FileServer(http.Dir("static")))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

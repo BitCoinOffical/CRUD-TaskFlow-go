@@ -11,14 +11,26 @@ import (
 	"main.go/internal/storage"
 )
 
-func CreateTaskHandlers(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	storage *storage.DataBase
+}
+
+func NewHandler(db *storage.DataBase) *Handler {
+	return &Handler{storage: db}
+}
+
+func (h *Handler) CreateTaskHandlers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	var task models.Tasks
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		http.Error(w, "not corect json", http.StatusBadRequest)
 		return
 	}
-	err = storage.CreateTask(&task)
+	err = h.storage.CreateTask(&task)
 	if err != nil {
 		log.Println("Ошибка при создании задачи:", err)
 		http.Error(w, "Failed to create task", http.StatusInternalServerError)
@@ -29,8 +41,12 @@ func CreateTaskHandlers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
-func GetTaskHandlers(w http.ResponseWriter, r *http.Request) {
-	tasks, err := storage.GetTask()
+func (h *Handler) GetTaskHandlers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	tasks, err := h.storage.GetTask()
 	if err != nil {
 		http.Error(w, "Failed to get tasks", http.StatusInternalServerError)
 		return
@@ -44,7 +60,11 @@ func GetTaskHandlers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateTaskByIDHandlers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateTaskByIDHandlers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -60,18 +80,21 @@ func UpdateTaskByIDHandlers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = storage.UpdateTaskByID(id, updateTask.Status)
+	err = h.storage.UpdateTaskByID(id, updateTask.Status)
 	if err != nil {
 		http.Error(w, "failed to update", http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
-func DeleteTaskHandlers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteTaskHandlers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	w.Header().Set("Content-Type", "application/json")
 	IdTask := strings.TrimPrefix(r.URL.Path, "/tasks/")
 	id, _ := strconv.Atoi(IdTask)
-	storage.DeleteTask(id)
+	h.storage.DeleteTask(id)
 }

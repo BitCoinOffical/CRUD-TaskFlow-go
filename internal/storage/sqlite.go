@@ -7,11 +7,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var DB *sql.DB
+type DataBase struct {
+	DB *sql.DB
+}
 
-func InitSQLite() {
-	var err error
-	DB, err = sql.Open("sqlite3", "tasks.db")
+func InitSQLite(path string) *DataBase {
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		log.Fatal("Cannot open DB:", err)
 	}
@@ -22,13 +23,11 @@ func InitSQLite() {
 		priority VARCHAR,
 		status VARCHAR,
 		title VARCHAR NOT NULL
-		
-		
-
 	);
 	`
-	_, err = DB.Exec(createTableQuery)
+	_, err = db.Exec(createTableQuery)
 	if err != nil {
 		log.Fatal("Cannot create table:", err)
 	}
+	return &DataBase{DB: db}
 }
